@@ -681,6 +681,28 @@ const rtems_libio_helper rtems_fs_init_helper =
 #endif
 
 /*
+ * If the GlobalEDF SMP Scheduler is selected, then configure for
+ * it.
+ */
+#if defined(CONFIGURE_SCHEDULER_GLOBALEDF)
+  #include <rtems/score/schedulerglobaledf.h>
+  #define CONFIGURE_SCHEDULER_ENTRY_POINTS SCHEDULER_GLOBALEDF_ENTRY_POINTS
+
+  /**
+   * This defines the memory used by the priority scheduler.
+   */
+
+  #define CONFIGURE_MEMORY_FOR_SCHEDULER ( \
+    _Configure_From_workspace( \
+      sizeof(Scheduler_globaledf_Control) +  \
+      ((CONFIGURE_MAXIMUM_PRIORITY) * sizeof(Chain_Control)) ) \
+  )
+  #define CONFIGURE_MEMORY_PER_TASK_FOR_SCHEDULER ( \
+    _Configure_From_workspace(sizeof(Scheduler_globaledf_perthread)) )
+#endif
+
+
+/*
  * If the Simple Priority Scheduler is selected, then configure for it.
  */
 #if defined(CONFIGURE_SCHEDULER_SIMPLE)
