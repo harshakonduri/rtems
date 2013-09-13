@@ -60,15 +60,11 @@ typedef struct {
   RBTree_Control ready;
   /* Chain Control that uses the scheduled tasks */
   Chain_Control scheduled;
-  /* Use an integer to identify whether a task is on ready or scheduled queues */
-  /* THREAD LOCATION IDENTIFICATION*/
+   /* THREAD LOCATION IDENTIFICATION*/
   THREAD_PLACED_IN thread_location;
 
   /* The state of tasks in the queue */
   Scheduler_EDF_Queue_state queue_state;
-
-  /* RBTree Node information*/
-  RBTree_Node node;
 
 } Scheduler_globaledf_Control;
 
@@ -107,7 +103,7 @@ typedef struct {
     _Scheduler_EDF_Priority_compare, \
     _Scheduler_EDF_Release_job, \
     _Scheduler_default_Tick, \
-    _Scheduler_default_Start_idle \
+    _Scheduler_globaledf_Start_idle \
   }
 
 void _Scheduler_globaledf_Initialize( void );

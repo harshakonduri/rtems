@@ -211,7 +211,7 @@ static void _Scheduler_globaledf_Enqueue_ordered(
   } else {
     Thread_Control *lowest_scheduled =  _Scheduler_globaledf_Get_lowest_scheduled(self);
 
-      if ( ( *order )( &thread->Object.Node, &lowest_scheduled->Object.Node ) ) {
+     if ( ( *order )( &thread->Object.Node, &lowest_scheduled->Object.Node ) ) {
     _Scheduler_globaledf_Allocate_processor( thread, lowest_scheduled );
 
     _Scheduler_globaledf_ChainInsert( &self->scheduled, thread, order );
@@ -221,9 +221,9 @@ static void _Scheduler_globaledf_Enqueue_ordered(
       &self->ready,
       lowest_scheduled
     );
-      } else {
+     } else {
       _Scheduler_globaledf_Insert( &self->ready, thread, node);
-     }
+      }
   }
 }
 
@@ -314,14 +314,19 @@ static void _Scheduler_globaledf_helper_Schedule(
   Thread_Control *thread
 )
 {
-  if ( thread->is_in_the_air ) {
+  /*  if ( thread->is_in_the_air ) {
     thread->is_in_the_air = false;
 
     _Scheduler_globaledf_Schedule_highest_ready(
       self,
       thread
     );
-  }
+    }*/
+
+   _Scheduler_globaledf_Schedule_highest_ready(
+      self,
+      thread
+    );
 }
 
 void _Scheduler_globaledf_Schedule( Thread_Control *thread )
