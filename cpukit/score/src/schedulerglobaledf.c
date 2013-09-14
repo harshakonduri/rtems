@@ -58,6 +58,7 @@ void _Scheduler_globaledf_Initialize( void )
 			    0
 			  );
   _Chain_Initialize_empty( &self->scheduled );
+  _SMP_lock_Initialize(&self->smp_lock_ready_queue);
   _Scheduler.information = self;
 }
 
@@ -115,6 +116,7 @@ static Thread_Control *_Scheduler_globaledf_Get_highest_ready(
 {
   Thread_Control *highest_ready = NULL;
 
+  _SMP_lock_Acquire(&self->smp_lock_ready_queue);
   if ( !_RBTree_Is_null(&self->ready) ) {
 
     RBTree_Node *first = _RBTree_First(&self->ready, RBT_LEFT);
@@ -123,7 +125,7 @@ static Thread_Control *_Scheduler_globaledf_Get_highest_ready(
 
     highest_ready = sched_info->thread;
   }
-
+  _SMP_lock_Release(&self->smp_lock_ready_queue);
   return highest_ready;
 }
 
@@ -137,7 +139,11 @@ static void _Scheduler_globaledf_Move_from_scheduled_to_ready(
     (Scheduler_globaledf_perthread*) scheduled_to_ready->scheduler_info;
    RBTree_Node *node = &(sched_info->Node); 
  _Chain_Extract_unprotected( &scheduled_to_ready->Object.Node );
+  _SMP_lock_Acquire(&self->smp_lock_ready_queue);
+
  _RBTree_Insert( ready_chain, node );
+
+  _SMP_lock_Release(&self->smp_lock_ready_queue);
  }
 
 static void _Scheduler_globaledf_Move_from_ready_to_scheduled(
@@ -148,8 +154,10 @@ static void _Scheduler_globaledf_Move_from_ready_to_scheduled(
 {
     Scheduler_globaledf_perthread *sched_info =
     (Scheduler_globaledf_perthread*) ready_to_scheduled->scheduler_info;
+  _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    RBTree_Node *node = &(sched_info->Node);
    _RBTree_Extract_unprotected(&self->ready, node );
+  _SMP_lock_Release(&self->smp_lock_ready_queue);
    _Scheduler_simple_Insert_priority_fifo( scheduled_chain, ready_to_scheduled );
 }
 
@@ -159,10 +167,13 @@ static void _Scheduler_globaledf_Insert(
   RBTree_Node *node
 )
 {
+  Scheduler_globaledf_Control *self = _Scheduler_globaledf_Instance();
    Scheduler_globaledf_perthread *sched_info =
     (Scheduler_globaledf_perthread*) thread->scheduler_info;
    sched_info->thread_location = THREAD_IN_READY_QUEUE;
+  _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    _RBTree_Insert( chain, node);
+  _SMP_lock_Release(&self->smp_lock_ready_queue);
 }
 
 static void _Scheduler_globaledf_ChainInsert(
@@ -268,11 +279,13 @@ void _Scheduler_globaledf_Extract( Thread_Control *thread )
   Scheduler_globaledf_Control *self = _Scheduler_globaledf_Instance();
 
   _Chain_Extract_unprotected( &thread->Object.Node );
+  _SMP_lock_Acquire(&self->smp_lock_ready_queue);
 
   if ( thread->is_scheduled ) {
     RBTree_Node *first = _RBTree_First(&self->ready, RBT_LEFT);
     Scheduler_globaledf_perthread *sched_info =  _RBTree_Container_of(first, Scheduler_globaledf_perthread, Node);
 
+  _SMP_lock_Release(&self->smp_lock_ready_queue);
     Thread_Control *highest_ready = sched_info->thread;
 
     _Scheduler_globaledf_Allocate_processor( highest_ready, thread );

@@ -625,6 +625,7 @@ const rtems_libio_helper rtems_fs_init_helper =
 
 #if !defined(RTEMS_SMP)
   #undef CONFIGURE_SCHEDULER_SIMPLE_SMP
+  #undef CONFIGURE_SCHEDULER_GLOBALEDF
 #endif
 
 /* If no scheduler is specified, the priority scheduler is default. */
@@ -633,6 +634,7 @@ const rtems_libio_helper rtems_fs_init_helper =
     !defined(CONFIGURE_SCHEDULER_PRIORITY_SMP) && \
     !defined(CONFIGURE_SCHEDULER_SIMPLE) && \
     !defined(CONFIGURE_SCHEDULER_SIMPLE_SMP) && \
+    !defined(CONFIGURE_SCHEDULER_GLOBALEDF) &&	\
     !defined(CONFIGURE_SCHEDULER_EDF) && \
     !defined(CONFIGURE_SCHEDULER_CBS)
   #if defined(RTEMS_SMP) && defined(CONFIGURE_SMP_APPLICATION)
@@ -693,10 +695,8 @@ const rtems_libio_helper rtems_fs_init_helper =
    */
 
   #define CONFIGURE_MEMORY_FOR_SCHEDULER ( \
-    _Configure_From_workspace( \
-      sizeof(Scheduler_globaledf_Control) +  \
-      ((CONFIGURE_MAXIMUM_PRIORITY) * sizeof(Chain_Control)) ) \
-  )
+  _Configure_From_workspace(sizeof(Scheduler_globaledf_Control)) )
+
   #define CONFIGURE_MEMORY_PER_TASK_FOR_SCHEDULER ( \
     _Configure_From_workspace(sizeof(Scheduler_globaledf_perthread)) )
 #endif
