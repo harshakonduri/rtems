@@ -62,8 +62,6 @@ typedef struct {
   Chain_Control scheduled;
    /* THREAD LOCATION IDENTIFICATION*/
   THREAD_PLACED_IN thread_location;
-  /* The state of tasks in the queue */
-  Scheduler_EDF_Queue_state queue_state;
   /*Instance of SMP_lock for locking ready queue*/
   SMP_lock_Control smp_lock_ready_queue;
 

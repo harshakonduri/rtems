@@ -45,7 +45,7 @@ static int _Scheduler_EDF_RBTree_compare_function
    * This function compares only numbers for the red-black tree,
    * but priorities have an opposite sense.
    */
-  return _Scheduler_Priority_compare(value1, value2);
+  return (-1)*_Scheduler_Priority_compare(value1, value2);
 }
 
 
@@ -142,7 +142,7 @@ static void _Scheduler_globaledf_Move_from_scheduled_to_ready(
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
 
  _RBTree_Insert( ready_chain, node );
-
+  sched_info->queue_state = SCHEDULER_EDF_QUEUE_STATE_YES;
   _SMP_lock_Release(&self->smp_lock_ready_queue);
  }
 
@@ -157,6 +157,7 @@ static void _Scheduler_globaledf_Move_from_ready_to_scheduled(
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    RBTree_Node *node = &(sched_info->Node);
    _RBTree_Extract_unprotected(&self->ready, node );
+   sched_info->queue_state = SCHEDULER_EDF_QUEUE_STATE_NOT_PRESENTLY;
   _SMP_lock_Release(&self->smp_lock_ready_queue);
    _Scheduler_simple_Insert_priority_fifo( scheduled_chain, ready_to_scheduled );
 }
@@ -173,6 +174,7 @@ static void _Scheduler_globaledf_Insert(
    sched_info->thread_location = THREAD_IN_READY_QUEUE;
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    _RBTree_Insert( chain, node);
+  sched_info->queue_state = SCHEDULER_EDF_QUEUE_STATE_YES;
   _SMP_lock_Release(&self->smp_lock_ready_queue);
 }
 
@@ -203,12 +205,15 @@ static void _Scheduler_globaledf_Enqueue_ordered(
    * The scheduled chain has exactly processor count nodes after
    * initialization, thus the lowest priority scheduled thread exists.
    */
+  Scheduler_globaledf_perthread *sched_info =
+   (Scheduler_globaledf_perthread*) thread->scheduler_info;
+  RBTree_Node *node_thread = &(sched_info->Node);
   if(thread->is_in_the_air) {
     Thread_Control *highest_ready = _Scheduler_globaledf_Get_highest_ready(self);
     thread->is_in_the_air = false;
     if (
       highest_ready != NULL
-        && !( *order )( &thread->Object.Node, &highest_ready->Object.Node )
+      && (_Scheduler_EDF_RBTree_compare_function(node_thread,node))
     ) {
       _Scheduler_SMP_Allocate_processor( highest_ready, thread );
 
