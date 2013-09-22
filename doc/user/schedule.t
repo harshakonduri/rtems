@@ -139,6 +139,15 @@ This algorithm is non-deterministic. When scheduling, it must consider
 which tasks are to be executed on each core while avoiding superfluous
 task migrations.
 
+@subsection Global-Earliest Deadline First Scheduler
+
+This scheduler is an extension of the EDF scheduler to run on 
+multiple cores. This scheduler maintains the tasks with highest priority
+ or deadline proportional to @i{O(number of cores)} in a scheduled chain
+ and all the tasks are in a Red Black Tree. This scheduler is designed to
+ provide the same performance of the EDF Scheduler on a multi-core
+ environment.
+
 @subsection Earliest Deadline First Scheduler
 
 @cindex earliest deadline first scheduling

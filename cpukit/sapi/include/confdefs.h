@@ -688,17 +688,17 @@ const rtems_libio_helper rtems_fs_init_helper =
  */
 #if defined(CONFIGURE_SCHEDULER_GLOBALEDF)
   #include <rtems/score/schedulerglobaledf.h>
-  #define CONFIGURE_SCHEDULER_ENTRY_POINTS SCHEDULER_GLOBALEDF_ENTRY_POINTS
+  #define CONFIGURE_SCHEDULER_ENTRY_POINTS SCHEDULER_GLOBAL_EDF_ENTRY_POINTS
 
   /**
    * This defines the memory used by the priority scheduler.
    */
 
   #define CONFIGURE_MEMORY_FOR_SCHEDULER ( \
-  _Configure_From_workspace(sizeof(Scheduler_globaledf_Control)) )
+  _Configure_From_workspace(sizeof(Scheduler_global_EDF_Control)) )
 
   #define CONFIGURE_MEMORY_PER_TASK_FOR_SCHEDULER ( \
-    _Configure_From_workspace(sizeof(Scheduler_globaledf_perthread)) )
+    _Configure_From_workspace(sizeof(Scheduler_global_EDF_perthread)) )
 #endif
 
 
