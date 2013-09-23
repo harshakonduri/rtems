@@ -698,7 +698,7 @@ const rtems_libio_helper rtems_fs_init_helper =
   _Configure_From_workspace(sizeof(Scheduler_global_EDF_Control)) )
 
   #define CONFIGURE_MEMORY_PER_TASK_FOR_SCHEDULER ( \
-    _Configure_From_workspace(sizeof(Scheduler_global_EDF_perthread)) )
+    _Configure_From_workspace(sizeof(Scheduler_global_EDF_Per_thread)) )
 #endif
 
 

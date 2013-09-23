@@ -40,9 +40,9 @@ static int _Scheduler_EDF_RBTree_compare_function
 )
 {
   Priority_Control value1 = _RBTree_Container_of
-    (n1,Scheduler_global_EDF_perthread,Node)->thread->current_priority;
+    (n1,Scheduler_global_EDF_Per_thread,Node)->thread->current_priority;
   Priority_Control value2 = _RBTree_Container_of
-    (n2,Scheduler_global_EDF_perthread,Node)->thread->current_priority;
+    (n2,Scheduler_global_EDF_Per_thread,Node)->thread->current_priority;
   /*
    * This function compares only numbers for the red-black tree,
    * but priorities have an opposite sense.
@@ -122,8 +122,8 @@ static Thread_Control *_Scheduler_global_EDF_Get_highest_ready(
   if ( !_RBTree_Is_null(&self->ready) ) {
 
     RBTree_Node *first = _RBTree_First(&self->ready, RBT_LEFT);
-    Scheduler_global_EDF_perthread *sched_info =  _RBTree_Container_of(first,
-								      Scheduler_global_EDF_perthread, Node);
+    Scheduler_global_EDF_Per_thread *sched_info =  _RBTree_Container_of(first,
+								      Scheduler_global_EDF_Per_thread, Node);
 
     highest_ready = sched_info->thread;
   }
@@ -137,8 +137,8 @@ static void _Scheduler_global_EDF_Move_from_scheduled_to_ready(
   Thread_Control *scheduled_to_ready
 )
 {
- Scheduler_global_EDF_perthread *sched_info =
-    (Scheduler_global_EDF_perthread*) scheduled_to_ready->scheduler_info;
+ Scheduler_global_EDF_Per_thread *sched_info =
+    (Scheduler_global_EDF_Per_thread*) scheduled_to_ready->scheduler_info;
    RBTree_Node *node = &(sched_info->Node); 
  _Chain_Extract_unprotected( &scheduled_to_ready->Object.Node );
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
@@ -154,8 +154,8 @@ static void _Scheduler_global_EDF_Move_from_ready_to_scheduled(
   Thread_Control *ready_to_scheduled
 )
 {
-    Scheduler_global_EDF_perthread *sched_info =
-    (Scheduler_global_EDF_perthread*) ready_to_scheduled->scheduler_info;
+    Scheduler_global_EDF_Per_thread *sched_info =
+    (Scheduler_global_EDF_Per_thread*) ready_to_scheduled->scheduler_info;
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    RBTree_Node *node = &(sched_info->Node);
    _RBTree_Extract_unprotected(&self->ready, node );
@@ -171,8 +171,8 @@ static void _Scheduler_global_EDF_Insert(
 )
 {
   Scheduler_global_EDF_Control *self = _Scheduler_global_EDF_Instance();
-   Scheduler_global_EDF_perthread *sched_info =
-    (Scheduler_global_EDF_perthread*) thread->scheduler_info;
+   Scheduler_global_EDF_Per_thread *sched_info =
+    (Scheduler_global_EDF_Per_thread*) thread->scheduler_info;
    sched_info->thread_location = THREAD_IN_READY_QUEUE;
   _SMP_lock_Acquire(&self->smp_lock_ready_queue);
    _RBTree_Insert( chain, node);
@@ -186,8 +186,8 @@ static void _Scheduler_global_EDF_ChainInsert(
   Chain_Node_order order
 )
 {
- Scheduler_global_EDF_perthread *sched_info =
-    (Scheduler_global_EDF_perthread*) thread->scheduler_info;
+ Scheduler_global_EDF_Per_thread *sched_info =
+    (Scheduler_global_EDF_Per_thread*) thread->scheduler_info;
 
   sched_info->thread_location = THREAD_IN_SCHEDULED_QUEUE;
   _Chain_Insert_ordered_unprotected( chain, &thread->Object.Node, order );
@@ -207,8 +207,8 @@ static void _Scheduler_global_EDF_Enqueue_ordered(
    * The scheduled chain has exactly processor count nodes after
    * initialization, thus the lowest priority scheduled thread exists.
    */
-  Scheduler_global_EDF_perthread *sched_info =
-   (Scheduler_global_EDF_perthread*) thread->scheduler_info;
+  Scheduler_global_EDF_Per_thread *sched_info =
+   (Scheduler_global_EDF_Per_thread*) thread->scheduler_info;
   RBTree_Node *node_thread = &(sched_info->Node);
   if(thread->is_in_the_air) {
     Thread_Control *highest_ready = _Scheduler_global_EDF_Get_highest_ready(self);
@@ -248,13 +248,13 @@ static void _Scheduler_global_EDF_Enqueue_ordered(
 void *_Scheduler_global_EDF_Allocate( Thread_Control *the_thread)
 {
   void *sched;
-  Scheduler_global_EDF_perthread *schinfo;
+  Scheduler_global_EDF_Per_thread *schinfo;
 
-  sched = _Workspace_Allocate( sizeof(Scheduler_global_EDF_perthread) );
+  sched = _Workspace_Allocate( sizeof(Scheduler_global_EDF_Per_thread) );
 
   if ( sched ) {
     the_thread->scheduler_info = sched;
-    schinfo = (Scheduler_global_EDF_perthread *)(the_thread->scheduler_info);
+    schinfo = (Scheduler_global_EDF_Per_thread *)(the_thread->scheduler_info);
     schinfo->thread = the_thread;
     schinfo->queue_state = SCHEDULER_EDF_QUEUE_STATE_NEVER_HAS_BEEN;
   }
@@ -270,8 +270,8 @@ void _Scheduler_global_EDF_Enqueue_priority_lifo( Thread_Control *thread )
 void _Scheduler_global_EDF_Enqueue_priority_fifo( Thread_Control *thread )
 {
   Scheduler_global_EDF_Control *self = _Scheduler_global_EDF_Instance();
- Scheduler_global_EDF_perthread *sched_info =
-    (Scheduler_global_EDF_perthread*) thread->scheduler_info;
+ Scheduler_global_EDF_Per_thread *sched_info =
+    (Scheduler_global_EDF_Per_thread*) thread->scheduler_info;
   RBTree_Node *node = &(sched_info->Node);
 
   _Scheduler_global_EDF_Enqueue_ordered(self,//Global EDF Control
@@ -290,7 +290,7 @@ void _Scheduler_global_EDF_Extract( Thread_Control *thread )
 
   if ( thread->is_scheduled ) {
     RBTree_Node *first = _RBTree_First(&self->ready, RBT_LEFT);
-    Scheduler_global_EDF_perthread *sched_info =  _RBTree_Container_of(first, Scheduler_global_EDF_perthread, Node);
+    Scheduler_global_EDF_Per_thread *sched_info =  _RBTree_Container_of(first, Scheduler_global_EDF_Per_thread, Node);
 
   _SMP_lock_Release(&self->smp_lock_ready_queue);
     Thread_Control *highest_ready = sched_info->thread;

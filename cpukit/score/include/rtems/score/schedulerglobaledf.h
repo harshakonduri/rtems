@@ -85,7 +85,7 @@ typedef struct {
     /* Thread information of every thread*/
   Thread_Control *thread;
 
-  } Scheduler_global_EDF_perthread;
+  } Scheduler_global_EDF_Per_thread;
 
 /**
  * @brief Entry points for the Global EDF Scheduler.
